@@ -1,0 +1,26 @@
+{
+  "name": "vr-visualizer",
+  "version": "1.0.0",
+  "description": "VR Music Visualizer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "lint": "eslint public/app.js server.js",
+    "format": "prettier --write \"**/*.{js,html,css,json}\"",
+    "check": "npm run format && node -c public/app.js && node -c server.js && npm run lint"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
+    "axios": "^1.20.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.6"
+  }
+}

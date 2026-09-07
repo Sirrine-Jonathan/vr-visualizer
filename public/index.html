@@ -1,0 +1,750 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>VR Music Visualizer</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <!-- 2D STAGING AREA -->
+    <div id="staging-area">
+      <h1>VR MUSIC VISUALIZER</h1>
+
+      <!-- Quick Join Panel -->
+      <div id="quick-join-panel" class="panel hidden">
+        <h3 class="quick-join-header">You've been invited to a room!</h3>
+        <button id="quick-join-btn">ENTER ROOM & VR</button>
+        <br />
+        <a href="#" id="quick-join-cancel">Cancel (Setup Audio First)</a>
+      </div>
+      <!-- Step 1: Media Source -->
+      <div id="step-1" class="panel">
+        <h3>Step 1: Choose Audio Source</h3>
+
+        <button onclick="window.location.href = '/login'">Connect Spotify Premium</button>
+
+        <div class="divider">OR</div>
+
+        <label class="file-upload-label file-upload-dark">
+          Upload Local MP3
+          <input type="file" id="audio-upload" accept="audio/*" />
+        </label>
+
+        <div class="divider">OR</div>
+
+        <div class="input-group">
+          <input type="text" id="yt-input" placeholder="Paste YouTube URL..." />
+          <button id="yt-btn">Load</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Room Setup -->
+      <div id="step-2" class="panel hidden">
+        <h3 id="source-status">Source Selected</h3>
+        <h3>Step 2: Room Setup</h3>
+
+        <button id="create-room-btn">Create Room (Host)</button>
+        <div class="divider">OR</div>
+        <div class="input-group">
+          <input type="text" id="room-id-input" placeholder="Room ID..." />
+          <button id="join-room-btn">Join</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Launch -->
+      <div id="step-3" class="panel panel-transparent hidden">
+        <h3 id="room-status">Ready to Launch</h3>
+        <button id="enter-vr-btn">ENTER VR COCKPIT</button>
+        <div class="button-row-center">
+          <button class="btn btn-small-dark" id="btn-copy-code">Copy Room Code</button>
+          <button class="btn btn-small-dark" id="btn-copy-link">Copy Join Link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D VR SCENE -->
+    <div id="aframe-scene-container">
+      <a-scene
+        background="color: #000000"
+        fog="type: exponential; color: #050510; density: 0.02"
+        vr-mode-ui="enabled: false"
+        cursor="rayOrigin: mouse"
+      >
+        <a-light type="ambient" color="#111"></a-light>
+        <a-light type="directional" position="0 10 -10" color="#fff" intensity="0.5"></a-light>
+        <a-light
+          id="ui-light"
+          type="directional"
+          position="0 4 2"
+          target="#vr-cockpit-container"
+          color="#ffffff"
+          intensity="1.2"
+          visible="true"
+        ></a-light>
+
+        <a-entity id="viz-waving-starfield" waving-starfield visible="true"></a-entity>
+        <a-entity id="viz-color-wave-stars" color-wave-stars visible="false"></a-entity>
+        <a-entity id="viz-liquid" liquid-particles position="0 -2 0" visible="false"></a-entity>
+        <a-entity id="viz-dynamic-color-waves" dynamic-color-waves visible="false"></a-entity>
+        <a-entity id="viz-pulse-stars" pulse-stars visible="false"></a-entity>
+        <a-entity id="viz-viscous-liquid" viscous-liquid position="0 -2 0" visible="false"></a-entity>
+        <a-entity id="viz-sea" raging-sea visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-cubes" dynamic-cubes visible="false"></a-entity>
+        <a-entity id="viz-linked" linked-particles visible="false"></a-entity>
+        <a-entity id="viz-solar-flare-storm" solar-flare-storm visible="false"></a-entity>
+        <a-entity id="viz-hyperdrive-warp" hyperdrive-warp visible="false"></a-entity>
+        <a-entity id="viz-cyber-matrix" cyber-matrix visible="false"></a-entity>
+        <a-entity id="viz-auroral-vortex" auroral-vortex visible="false"></a-entity>
+        <a-entity id="viz-quantum-nebula" quantum-nebula visible="false"></a-entity>
+        <a-entity id="viz-terrain" synth-terrain visible="false" position="0 -20 0"></a-entity>
+
+        <a-entity id="viz-megastructure" megastructure visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-crystal-spire" crystal-spire visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-dyson-ring" dyson-ring visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-neon-sentinel" neon-sentinel visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-fractal-beacon" fractal-beacon visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-event-horizon" event-horizon visible="false" position="0 0 0"></a-entity>
+
+        <a-entity id="viz-starcore" star-core visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-haloring" halo-ring visible="false" position="0 0 0"></a-entity>
+        <a-entity id="viz-supernova-fov" supernova-fov visible="false" position="0 1.6 0"></a-entity>
+        <a-entity id="viz-kaleidoscope-fov" kaleidoscope-fov visible="false" position="0 1.6 0"></a-entity>
+        <a-entity id="viz-data-matrix-fov" data-matrix-fov visible="false" position="0 1.6 0"></a-entity>
+        <a-entity id="viz-energy-shield-fov" energy-shield-fov visible="false" position="0 1.6 0"></a-entity>
+        <a-entity id="viz-wormhole-fov" wormhole-fov visible="false" position="0 1.6 0"></a-entity>
+
+        <!-- 3D VR Dashboard Cockpit -->
+        <a-entity id="vr-cockpit-container" position="0 1.2 -3.5" rotation="-15 0 0">
+          <a-entity id="vr-cockpit">
+            <!-- Background panel -->
+            <a-plane
+              width="4.0"
+              height="4.2"
+              position="0 -0.7 0"
+              color="#0a0a0a"
+              opacity="0.85"
+              border-radius="0.1"
+            ></a-plane>
+
+            <!-- Exit VR Button -->
+            <a-plane
+              id="btn-exit-vr"
+              class="clickable"
+              width="0.8"
+              height="0.25"
+              position="0 -2.4 0.02"
+              color="#cc0000"
+            >
+              <a-text value="EXIT VR" align="center" position="0 0 0.01" color="#fff" width="2"></a-text>
+            </a-plane>
+
+            <!-- Top Tabs -->
+            <a-plane
+              class="clickable tab-btn"
+              id="tab-btn-controls"
+              width="1.25"
+              height="0.3"
+              position="-1.35 1.05 0.02"
+              color="#25DB25"
+            >
+              <a-text value="Controls" align="center" position="0 0 0.01" color="#fff"></a-text>
+            </a-plane>
+            <a-plane
+              class="clickable tab-btn"
+              id="tab-btn-viz"
+              width="1.25"
+              height="0.3"
+              position="0 1.05 0.02"
+              color="#222"
+            >
+              <a-text value="Visuals" align="center" position="0 0 0.01" color="#fff"></a-text>
+            </a-plane>
+            <a-plane
+              class="clickable tab-btn"
+              id="tab-btn-music"
+              width="1.25"
+              height="0.3"
+              position="1.35 1.05 0.02"
+              color="#222"
+            >
+              <a-text value="Music" align="center" position="0 0 0.01" color="#fff"></a-text>
+            </a-plane>
+
+            <!-- Track Info & Global Play -->
+            <a-text
+              id="vr-track-info"
+              value="Waiting for music..."
+              position="0 0.7 0.01"
+              align="center"
+              width="3.4"
+              color="#fff"
+            ></a-text>
+            <a-plane
+              id="vr-play-btn"
+              class="clickable"
+              width="0.8"
+              height="0.25"
+              position="0 0.35 0.02"
+              color="#1DB954"
+            >
+              <a-text value="Play" align="center" position="0 0 0.01" color="#fff" width="2"></a-text>
+            </a-plane>
+
+            <!-- ================== CONTROLS TAB ================== -->
+            <a-entity id="tab-content-controls">
+              <a-text value="VR CONTROLS:" position="-1.5 -0.1 0.01" scale="0.6 0.6 0.6" color="#aaa"></a-text>
+              <a-text
+                value="- Use the tabs above to switch between Views."
+                position="-1.5 -0.3 0.01"
+                scale="0.5 0.5 0.5"
+                color="#fff"
+              ></a-text>
+              <a-text
+                value="- Press X or A on your controllers to Hide/Show this UI."
+                position="-1.5 -0.5 0.01"
+                scale="0.5 0.5 0.5"
+                color="#fff"
+              ></a-text>
+              <a-text
+                value="- Use the Right Thumbstick up/down to move UI closer or further."
+                position="-1.5 -0.7 0.01"
+                scale="0.5 0.5 0.5"
+                color="#fff"
+              ></a-text>
+            </a-entity>
+
+            <!-- ================== VISUALIZERS TAB ================== -->
+            <a-entity id="tab-content-viz" visible="false">
+              <a-text value="Effects:" position="-1.5 -0.1 0.01" scale="0.5 0.5 0.5" color="#aaa"></a-text>
+
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-color-wave-stars"
+                position="-1.14 -0.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Color Waves"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-waving-starfield"
+                position="-0.38 -0.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#25DB25"
+                ><a-text
+                  value="Wave Stars"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-liquid"
+                position="0.38 -0.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text value="Liquid" align="center" position="0 0 0.01" scale="0.42 0.42 0.42" color="#fff"></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-sea"
+                position="1.14 -0.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Raging Sea"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-cubes"
+                position="-1.14 -0.5 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Monoliths"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-linked"
+                position="-0.38 -0.5 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Linked Ptrs"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-terrain"
+                position="0.38 -0.5 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Synth Terrain"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-starcore"
+                position="1.14 -0.5 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Star Core"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-dynamic-color-waves"
+                position="-1.14 -0.7 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Pastel Waves"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-pulse-stars"
+                position="-0.38 -0.7 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Pulse Stars"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-viscous-liquid"
+                position="0.38 -0.7 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Viscous Liq"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-solar-flare-storm"
+                position="1.14 -0.7 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Solar Flare"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-hyperdrive-warp"
+                position="-1.14 -0.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Warp Field"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-cyber-matrix"
+                position="-0.38 -0.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Cyber Matrix"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-auroral-vortex"
+                position="0.38 -0.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Aurora Vortex"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-quantum-nebula"
+                position="1.14 -0.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Quantum Neb"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+
+              <a-text value="Entities:" position="-1.5 -1.1 0.01" scale="0.5 0.5 0.5" color="#aaa"></a-text>
+
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-megastructure"
+                position="-1.14 -1.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Megastructure"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-haloring"
+                position="-0.38 -1.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Halo Ring"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-crystal-spire"
+                position="0.38 -1.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Crystal Spire"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-dyson-ring"
+                position="1.14 -1.3 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Dyson Ring"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-neon-sentinel"
+                position="-1.14 -1.5 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Neon Sentinel"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-fractal-beacon"
+                position="-0.38 -1.5 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Fractal Beacon"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-event-horizon"
+                position="0.38 -1.5 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Singularity"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+
+              <a-text value="Full FOV Effects:" position="-1.5 -1.7 0.01" scale="0.5 0.5 0.5" color="#aaa"></a-text>
+
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-supernova-fov"
+                position="-1.14 -1.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Supernova FOV"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-kaleidoscope-fov"
+                position="-0.38 -1.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Kaleidoscope"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-data-matrix-fov"
+                position="0.38 -1.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Data Matrix"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-energy-shield-fov"
+                position="1.14 -1.9 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Shield FOV"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+              <a-plane
+                class="clickable toggle-btn"
+                data-viz="viz-wormhole-fov"
+                position="-1.14 -2.1 0.02"
+                width="0.75"
+                height="0.16"
+                color="#222"
+                ><a-text
+                  value="Wormhole FOV"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.42 0.42 0.42"
+                  color="#fff"
+                ></a-text
+              ></a-plane>
+            </a-entity>
+
+            <!-- ================== MUSIC TAB ================== -->
+            <a-entity id="tab-content-music" visible="false">
+              <!-- Advanced Controls -->
+              <a-plane
+                id="btn-voice-search"
+                class="clickable"
+                position="-0.9 -0.1 0.02"
+                width="1.6"
+                height="0.2"
+                color="#4285F4"
+              >
+                <a-text
+                  value="GEMINI VOICE SEARCH"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.5 0.5 0.5"
+                  color="#fff"
+                ></a-text>
+              </a-plane>
+
+              <a-plane
+                id="btn-liked-songs"
+                class="clickable"
+                position="0.9 -0.1 0.02"
+                width="1.6"
+                height="0.2"
+                color="#1DB954"
+              >
+                <a-text
+                  value="LIKED SONGS"
+                  align="center"
+                  position="0 0 0.01"
+                  scale="0.5 0.5 0.5"
+                  color="#fff"
+                ></a-text>
+              </a-plane>
+
+              <a-entity id="vr-spotify-menu" position="0 -0.4 0.02"></a-entity>
+
+              <!-- Pagination Controls -->
+              <a-plane
+                id="spotify-prev-btn"
+                class="clickable"
+                position="-0.5 -1.2 0.02"
+                width="0.6"
+                height="0.15"
+                color="#333"
+              >
+                <a-text value="< PREV" align="center" position="0 0 0.01" scale="0.6 0.6 0.6" color="#fff"></a-text>
+              </a-plane>
+              <a-text
+                id="spotify-page-info"
+                value="Page 1"
+                position="0 -1.2 0.02"
+                align="center"
+                scale="0.6 0.6 0.6"
+                color="#fff"
+              ></a-text>
+              <a-plane
+                id="spotify-next-btn"
+                class="clickable"
+                position="0.5 -1.2 0.02"
+                width="0.6"
+                height="0.15"
+                color="#333"
+              >
+                <a-text value="NEXT >" align="center" position="0 0 0.01" scale="0.6 0.6 0.6" color="#fff"></a-text>
+              </a-plane>
+
+              <!-- Voice Feedback Text -->
+              <a-text
+                id="voice-status-text"
+                value=""
+                position="0 -1.5 0.02"
+                align="center"
+                scale="0.6 0.6 0.6"
+                color="#ffaa00"
+              ></a-text>
+            </a-entity>
+          </a-entity>
+        </a-entity>
+
+        <!-- Camera and Hands -->
+        <a-entity id="camera-rig" position="0 0 0">
+          <a-camera position="0 1.6 0"></a-camera>
+          <a-entity
+            laser-controls="hand: right"
+            thumbstick-controls
+            ui-distance
+            raycaster="objects: .clickable; far: 100"
+            line="color: #1DB954; opacity: 0.7"
+          ></a-entity>
+          <a-entity
+            laser-controls="hand: left"
+            raycaster="objects: .clickable; far: 100"
+            line="color: #1DB954; opacity: 0.7"
+          ></a-entity>
+        </a-entity>
+      </a-scene>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  </body>
+</html>
